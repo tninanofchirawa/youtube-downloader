@@ -44,3 +44,9 @@ ffprobe.exe
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Private Developer Source and Manuals (kept only on your local machine)
+tools/security_source.py
+PRIVATE_SYSTEM_SECURITY_MANUAL.md
+
+
