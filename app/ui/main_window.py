@@ -14,7 +14,7 @@ class MainWindow:
 
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("YouTube Video & Audio Downloader (Pro Edition)")
+        self.root.title("Downloader 1.0")
         
         # Generous modern screen size
         width = 880
@@ -46,7 +46,7 @@ class MainWindow:
 
         tk.Label(
             brand_box,
-            text="🎬 Safe Downloader Pro",
+            text="🎬 Downloader 1.0",
             bg=Theme.BG_DARK,
             fg=Theme.TEXT_PRIMARY,
             font=Theme.FONT_TITLE,
@@ -101,7 +101,7 @@ class MainWindow:
 
         tk.Label(
             footer,
-            text="Encrypted Safe Core Engine • 1080p, 720p, 480p, MP3 Audio",
+            text="Downloader 1.0 • High-Speed Safe Media Engine (1080p, 720p, 480p, MP3)",
             bg=Theme.BG_CARD_ALT,
             fg=Theme.TEXT_MUTED,
             font=Theme.FONT_SMALL,
@@ -109,7 +109,7 @@ class MainWindow:
 
         tk.Label(
             footer,
-            text="v2.5.0",
+            text="v1.0.0",
             bg=Theme.BG_CARD_ALT,
             fg=Theme.TEXT_MUTED,
             font=Theme.FONT_SMALL,

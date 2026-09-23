@@ -1,7 +1,7 @@
 @echo off
-title Safe Media Downloader - Pro Edition
+title Downloader 1.0 - Fast ^& Safe Media Downloader
 echo =======================================================
-echo          Safe Media Downloader Launcher
+echo                 Downloader 1.0
 echo =======================================================
 echo.
 echo Starting application in safe mode...

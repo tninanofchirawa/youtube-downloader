@@ -1,6 +1,6 @@
-# 📖 Safe Media Downloader — User Manual & Quickstart Guide
+# 📖 Downloader 1.0 — User Manual & Quickstart Guide
 
-Welcome to the **Safe Media Downloader (Pro Edition)**. This guide provides simple, step-by-step instructions so anyone (friends, family, and colleagues) can run and use the application effortlessly and safely.
+Welcome to **Downloader 1.0**. This guide provides simple, step-by-step instructions so anyone (friends, family, and colleagues) can run and use the application effortlessly and safely.
 
 ---
 
@@ -10,7 +10,7 @@ If you are on Windows, you don't even need to open a terminal:
 
 1. **Step 1**: Open the project folder.
 2. **Step 2**: Double-click **`Start_Downloader.bat`**.
-3. **Step 3**: The app will launch in modern dark mode automatically!
+3. **Step 3**: The app launches immediately in modern dark mode!
 
 ---
 
@@ -18,8 +18,7 @@ If you are on Windows, you don't even need to open a terminal:
 
 If you prefer launching via terminal or are running on macOS / Linux:
 
-### 1. Install Requirements (Only needed the first time)
-Open your terminal in the project folder and run:
+### 1. Install Requirements (Only needed once)
 ```bash
 pip install -r requirements.txt
 ```
@@ -55,8 +54,6 @@ python run.py
 
 ## 🛡️ Security & Privacy Assurance
 
-You can run and share this software with complete peace of mind:
-
 - **100% Encrypted Connections**: All downloads connect strictly over secure **HTTPS / TLS 1.3** encryption directly to official YouTube media servers.
 - **Zero Local Probing (SSRF Immunity)**: The app blocks access to local IP addresses, private subnets, and local file schemes (`file://`, `127.0.0.1`, `localhost`).
 - **Path Traversal Immunity**: Filenames are sanitized against directory traversal attacks (`../`) and Windows system-reserved names (`CON`, `PRN`, `AUX`, `NUL`).
@@ -71,4 +68,14 @@ To verify that all 43 security and performance tests pass on your machine:
 ```bash
 python -m unittest discover -s tests -v
 ```
-*(All 43 tests should report `OK`)*.
+*(All 43 tests will report `OK`)*.
+
+---
+
+## ⚖️ Legal Disclaimer & Complete Limitation of Liability
+
+> **IMPORTANT LEGAL NOTICE**:
+> 
+> 1. **"AS-IS" License**: This software is distributed free of charge for personal educational and fair-use archiving purposes only.
+> 2. **Zero Liability on Author**: The original creator/developer accepts **ABSOLUTELY NO LIABILITY**, financial responsibility, or legal accountability for any loss of data, hardware damage, copyright infringement, or legal disputes arising from the use, misuse, or distribution of this software.
+> 3. **Third-Party Modifications**: If any user, friend, or third party edits, modifies, decompiles, tampers with, or alters the source code, they assume **100% full liability and responsibility** for their actions. The original author is completely released from any claims or damages resulting from modified code.
