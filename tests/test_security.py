@@ -29,6 +29,29 @@ class TestSecurityValidation(unittest.TestCase):
             sanitized = validate_media_url(url)
             self.assertTrue(sanitized.startswith("https://"))
 
+    def test_partial_urls_and_playlist_stripping(self):
+        """Partial watch URLs and single video URLs with playlist queries are cleaned."""
+        # Partial URL starting with watch?v=
+        self.assertEqual(
+            validate_media_url("watch?v=842rgQP_OgI&list=PLBh2i93oe2quABbNq4l_-hyjhW8eOdgrO&index=1"),
+            "https://www.youtube.com/watch?v=842rgQP_OgI"
+        )
+        # Full URL with playlist parameters
+        self.assertEqual(
+            validate_media_url("https://www.youtube.com/watch?v=842rgQP_OgI&list=PLBh2i93oe2quABbNq4l_-hyjhW8eOdgrO&index=1"),
+            "https://www.youtube.com/watch?v=842rgQP_OgI"
+        )
+        # youtu.be link
+        self.assertEqual(
+            validate_media_url("https://youtu.be/842rgQP_OgI?list=PL123"),
+            "https://www.youtube.com/watch?v=842rgQP_OgI"
+        )
+        # pure playlist URL preserved
+        self.assertEqual(
+            validate_media_url("https://www.youtube.com/playlist?list=PLBh2i93oe2quABbNq4l_-hyjhW8eOdgrO"),
+            "https://www.youtube.com/playlist?list=PLBh2i93oe2quABbNq4l_-hyjhW8eOdgrO"
+        )
+
     def test_reject_ssrf_and_ip_addresses(self):
         """Direct IP addresses, localhost, and loopbacks must be blocked."""
         malicious_urls = [

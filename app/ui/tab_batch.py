@@ -243,6 +243,37 @@ class BatchVideoTab(ttk.Frame):
             pady=4,
         ).pack(side="right")
 
+        # Cookies Auth Row
+        cookie_row = tk.Frame(container, bg=Theme.BG_DARK)
+        cookie_row.pack(fill="x", pady=(0, 14))
+
+        tk.Label(
+            cookie_row,
+            text="🍪 Browser Auth:",
+            bg=Theme.BG_DARK,
+            fg=Theme.TEXT_MUTED,
+            font=Theme.FONT_SMALL,
+        ).pack(side="left", padx=(4, 6))
+
+        self.cookie_browser = tk.StringVar(value="None (Standard)")
+        self.cookie_combobox = ttk.Combobox(
+            cookie_row,
+            textvariable=self.cookie_browser,
+            values=["None (Standard)", "Chrome", "Edge", "Firefox", "Brave", "Opera", "Vivaldi"],
+            state="readonly",
+            width=18,
+            font=Theme.FONT_SMALL,
+        )
+        self.cookie_combobox.pack(side="left", padx=(0, 10))
+
+        tk.Label(
+            cookie_row,
+            text="• Use if lectures require Google sign-in or institutional authentication",
+            bg=Theme.BG_DARK,
+            fg=Theme.TEXT_MUTED,
+            font=Theme.FONT_SMALL,
+        ).pack(side="left")
+
         # -------------------------------------------------------------
         # 4. ACTION CONTROLS & PROGRESS
         # -------------------------------------------------------------
@@ -333,6 +364,12 @@ class BatchVideoTab(ttk.Frame):
         if chosen:
             self.save_dir.set(chosen)
 
+    def _get_selected_browser(self) -> Optional[str]:
+        val = self.cookie_browser.get().strip().lower()
+        if "none" in val or not val:
+            return None
+        return val.split()[0]
+
     def on_start_batch(self):
         raw_text = self.url_text.get("1.0", tk.END).strip()
         lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
@@ -360,6 +397,7 @@ class BatchVideoTab(ttk.Frame):
         selected_preset = self.preset_combobox.get()
         media_fmt = self.quality_presets.get(selected_preset, list(self.quality_presets.values())[0])
         save_folder = self.save_dir.get()
+        browser = self._get_selected_browser()
 
         self._is_running = True
         self.start_btn.config(state="disabled")
@@ -368,11 +406,11 @@ class BatchVideoTab(ttk.Frame):
 
         threading.Thread(
             target=self._worker_batch_loop,
-            args=(valid_urls, media_fmt, save_folder),
+            args=(valid_urls, media_fmt, save_folder, browser),
             daemon=True,
         ).start()
 
-    def _worker_batch_loop(self, urls: List[str], media_fmt: MediaFormat, save_folder: str):
+    def _worker_batch_loop(self, urls: List[str], media_fmt: MediaFormat, save_folder: str, browser: Optional[str] = None):
         total = len(urls)
         completed = 0
         failed = 0
@@ -393,6 +431,7 @@ class BatchVideoTab(ttk.Frame):
                     raw_url=url,
                     media_format=media_fmt,
                     save_dir=save_folder,
+                    browser_cookies=browser,
                 )
                 completed += 1
             except Exception:

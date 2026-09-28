@@ -181,6 +181,37 @@ class SingleVideoTab(ttk.Frame):
             cursor="hand2",
         ).pack(side="right")
 
+        # 3b. BROWSER AUTH / COOKIES BAR (Subtle & Clean)
+        auth_bar = tk.Frame(container, bg=Theme.BG_DARK)
+        auth_bar.pack(fill="x", pady=(0, 12))
+
+        tk.Label(
+            auth_bar,
+            text="🍪 Browser Auth:",
+            bg=Theme.BG_DARK,
+            fg=Theme.TEXT_MUTED,
+            font=Theme.FONT_SMALL,
+        ).pack(side="left", padx=(4, 6))
+
+        self.cookie_browser = tk.StringVar(value="None (Standard)")
+        self.cookie_combobox = ttk.Combobox(
+            auth_bar,
+            textvariable=self.cookie_browser,
+            values=["None (Standard)", "Chrome", "Edge", "Firefox", "Brave", "Opera", "Vivaldi"],
+            state="readonly",
+            width=18,
+            font=Theme.FONT_SMALL,
+        )
+        self.cookie_combobox.pack(side="left", padx=(0, 10))
+
+        tk.Label(
+            auth_bar,
+            text="• Use if lecture requires Google sign-in or age verification",
+            bg=Theme.BG_DARK,
+            fg=Theme.TEXT_MUTED,
+            font=Theme.FONT_SMALL,
+        ).pack(side="left")
+
         # -------------------------------------------------------------
         # 4. RESULT CARD (Matching Reference Screenshot 2)
         # -------------------------------------------------------------
@@ -291,22 +322,29 @@ class SingleVideoTab(ttk.Frame):
         if chosen:
             self.save_dir.set(chosen)
 
+    def _get_selected_browser(self) -> Optional[str]:
+        val = self.cookie_browser.get().strip().lower()
+        if "none" in val or not val:
+            return None
+        return val.split()[0]
+
     def on_fetch_clicked(self):
         url = self.url_entry.get().strip()
         if not url:
             messagebox.showwarning("Input Required", "Please paste a YouTube URL to download.")
             return
 
+        browser = self._get_selected_browser()
         self.fetch_btn.config(state="disabled", text="Loading...", bg=Theme.RED_DARK)
         self.status_msg.set("Verifying link & fetching available formats...")
         self.speed_msg.set("")
         self.progress["value"] = 0
 
-        threading.Thread(target=self._worker_fetch, args=(url,), daemon=True).start()
+        threading.Thread(target=self._worker_fetch, args=(url, browser), daemon=True).start()
 
-    def _worker_fetch(self, url: str):
+    def _worker_fetch(self, url: str, browser: Optional[str] = None):
         try:
-            meta = MediaExtractor.fetch_metadata(url)
+            meta = MediaExtractor.fetch_metadata(url, browser_cookies=browser)
             self.after(0, self._render_results, meta)
         except SecurityValidationError as sve:
             self.after(0, self._on_fetch_error, f"Security Block: {sve}")
@@ -406,6 +444,7 @@ class SingleVideoTab(ttk.Frame):
     def trigger_download(self, selected_format: MediaFormat):
         url = self.url_entry.get().strip()
         save_folder = self.save_dir.get()
+        browser = self._get_selected_browser()
 
         self.status_msg.set(f"Starting download ({selected_format.resolution})...")
         self.speed_msg.set("")
@@ -418,16 +457,17 @@ class SingleVideoTab(ttk.Frame):
 
         threading.Thread(
             target=self._worker_download,
-            args=(url, selected_format, save_folder),
+            args=(url, selected_format, save_folder, browser),
             daemon=True,
         ).start()
 
-    def _worker_download(self, url: str, fmt: MediaFormat, save_folder: str):
+    def _worker_download(self, url: str, fmt: MediaFormat, save_folder: str, browser: Optional[str] = None):
         try:
             output_dir = self.downloader.download(
                 raw_url=url,
                 media_format=fmt,
                 save_dir=save_folder,
+                browser_cookies=browser,
             )
             self.after(0, self._on_download_success, output_dir)
         except Exception as e:

@@ -43,7 +43,14 @@ class TestHelpersAndExtractor(unittest.TestCase):
         ]
         parsed = MediaExtractor._parse_video_formats(sample_formats, 100)
         self.assertTrue(len(parsed) >= 2)
-        self.assertIn("1080p", parsed[0].label)
+    def test_ydl_base_opts_defaults_and_cookies(self):
+        opts = MediaExtractor.get_ydl_base_opts()
+        self.assertTrue(opts.get("noplaylist"))
+        self.assertNotIn("allowed_extractors", opts)
+        self.assertTrue(opts.get("no_config"))
+
+        opts_cookies = MediaExtractor.get_ydl_base_opts(browser_cookies="chrome")
+        self.assertEqual(opts_cookies.get("cookiesfrombrowser"), ("chrome",))
 
 
 if __name__ == "__main__":

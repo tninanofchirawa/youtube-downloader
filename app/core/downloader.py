@@ -74,6 +74,7 @@ class SafeDownloader:
         media_format: MediaFormat,
         save_dir: str,
         custom_name: Optional[str] = None,
+        browser_cookies: Optional[str] = None,
     ) -> str:
         """
         Executes a secure media download.
@@ -105,17 +106,21 @@ class SafeDownloader:
             "no_config": True,
             "restrictfilenames": True,
             "windowsfilenames": True,
-            "allowed_extractors": ["youtube", "youtube:*"],
+            "noplaylist": True,
             "socket_timeout": 30,
             "retries": 5,
         }
 
-        # 4. Attach FFmpeg path if available
+        # 4. Attach browser cookies if configured
+        if browser_cookies:
+            ydl_opts["cookiesfrombrowser"] = (browser_cookies,)
+
+        # 5. Attach FFmpeg path if available
         ffmpeg_dir = get_ffmpeg_path()
         if ffmpeg_dir:
             ydl_opts["ffmpeg_location"] = ffmpeg_dir
 
-        # 5. Audio vs Video post-processing configuration
+        # 6. Audio vs Video post-processing configuration
         if media_format.is_audio_only:
             target_codec = media_format.target_codec or "mp3"
             if target_codec == "mp3":
@@ -139,12 +144,25 @@ class SafeDownloader:
             # Video: Merge into standard MP4 container
             ydl_opts["merge_output_format"] = "mp4"
 
-        # 6. Execute download
+        # 7. Execute download
         if self.status_callback:
             self.status_callback("Initiating secure download...")
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([clean_url])
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([clean_url])
+        except yt_dlp.utils.DownloadError as de:
+            err_str = str(de)
+            if "DRM" in err_str or "drm" in err_str:
+                raise RuntimeError("Video is DRM-protected (Digital Rights Management) and cannot be downloaded.") from de
+            elif "Sign in to confirm you're not a bot" in err_str:
+                raise RuntimeError("YouTube bot detection triggered. Try selecting your browser from 'Browser Auth' to pass your session cookies.") from de
+            elif "Private video" in err_str or "members only" in err_str.lower():
+                raise RuntimeError("Video is private or restricted to members. Pass authenticated browser cookies from 'Browser Auth'.") from de
+            elif "Video unavailable" in err_str:
+                raise RuntimeError(f"Video unavailable: {err_str}") from de
+            else:
+                raise RuntimeError(f"Download failed: {err_str}") from de
 
         if self.status_callback:
             self.status_callback("Download completed successfully!")

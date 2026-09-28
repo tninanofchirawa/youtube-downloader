@@ -148,7 +148,7 @@ class TestHeavySecurityBugs(unittest.TestCase):
         self.assertTrue(opts.get("quiet"))
         self.assertTrue(opts.get("no_config"))
         self.assertTrue(opts.get("skip_download"))
-        self.assertEqual(opts.get("allowed_extractors"), ["youtube", "youtube:*"])
+        self.assertTrue(opts.get("noplaylist"))
 
 
 if __name__ == "__main__":

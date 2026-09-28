@@ -5,6 +5,7 @@ from typing import List, Optional
 import yt_dlp
 
 from ..utils.helpers import format_bytes, format_duration
+from .ffmpeg_handler import get_ffmpeg_path
 from .security import validate_media_url
 
 
@@ -40,26 +41,45 @@ class MediaExtractor:
     """Extracts streamlined, simplified video and audio options."""
 
     @staticmethod
-    def get_ydl_base_opts() -> dict:
-        return {
+    def get_ydl_base_opts(browser_cookies: Optional[str] = None) -> dict:
+        opts = {
             "quiet": True,
             "no_warnings": True,
             "skip_download": True,
             "no_color": True,
             "no_config": True,
-            "allowed_extractors": ["youtube", "youtube:*"],
+            "noplaylist": True,
             "socket_timeout": 15,
         }
+        ffmpeg_dir = get_ffmpeg_path()
+        if ffmpeg_dir:
+            opts["ffmpeg_location"] = ffmpeg_dir
+        if browser_cookies:
+            opts["cookiesfrombrowser"] = (browser_cookies,)
+        return opts
 
     @classmethod
-    def fetch_metadata(cls, raw_url: str) -> VideoMetadata:
+    def fetch_metadata(cls, raw_url: str, browser_cookies: Optional[str] = None) -> VideoMetadata:
         clean_url = validate_media_url(raw_url)
-        opts = cls.get_ydl_base_opts()
+        opts = cls.get_ydl_base_opts(browser_cookies=browser_cookies)
 
-        with yt_dlp.YoutubeDL(opts) as ydl:
-            info = ydl.extract_info(clean_url, download=False)
-            if not info:
-                raise ValueError("Could not retrieve media information.")
+        try:
+            with yt_dlp.YoutubeDL(opts) as ydl:
+                info = ydl.extract_info(clean_url, download=False)
+                if not info:
+                    raise ValueError("Could not retrieve media information.")
+        except yt_dlp.utils.DownloadError as de:
+            err_str = str(de)
+            if "DRM" in err_str or "drm" in err_str:
+                raise ValueError("This video is DRM-protected (Digital Rights Management) and cannot be downloaded.") from de
+            elif "Sign in to confirm you're not a bot" in err_str:
+                raise ValueError("YouTube requested sign-in / bot verification. Please select your browser under 'Browser Auth' to pass your session cookies.") from de
+            elif "Private video" in err_str or "members only" in err_str.lower():
+                raise ValueError("This video is private, members-only, or access-restricted. Please select your browser under 'Browser Auth' to pass your login session.") from de
+            elif "Video unavailable" in err_str:
+                raise ValueError(f"Video unavailable: {err_str}") from de
+            else:
+                raise ValueError(f"Could not retrieve video: {err_str}") from de
 
         duration = info.get("duration") or 0
         formats = info.get("formats", [])
